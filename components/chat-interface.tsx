@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import type { User } from "@/app/page"
-import { LogOut, MessageCircle, Settings, Globe, Building, ChevronDown } from "lucide-react"
+import { LogOut, MessageCircle, Settings, Globe, Building } from "lucide-react"
 import { ChatBot } from "@/components/chat-bot"
 
 interface ChatInterfaceProps {
