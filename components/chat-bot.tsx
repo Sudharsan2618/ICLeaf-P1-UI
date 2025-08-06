@@ -4,7 +4,6 @@ import type React from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-
 import { Badge } from "@/components/ui/badge"
 import type { User } from "@/app/page"
 import { Send, Bot, UserIcon, Loader2, Globe, Youtube, GitBranch, ExternalLink, Calendar, User as UserIcon2 } from "lucide-react"
@@ -31,6 +30,8 @@ interface WebResult {
   url: string
   snippet: string
   source?: string
+  link?: string
+  description?: string
 }
 
 interface YouTubeResult {
@@ -41,6 +42,10 @@ interface YouTubeResult {
   views: string
   publishedAt: string
   thumbnail?: string
+  snippet?: string
+  link?: string
+  author?: string
+  date?: string
 }
 
 interface GitResult {
@@ -52,6 +57,25 @@ interface GitResult {
   forks: number
   updatedAt: string
   author: string
+  name?: string
+  snippet?: string
+  link?: string
+  stargazers_count?: number
+  forks_count?: number
+  updated_at?: string
+  owner?: string
+}
+
+interface BackendResponse {
+  response: string | {
+    answer?: string
+    web_results?: WebResult[]
+    youtube_results?: YouTubeResult[]
+    git_results?: GitResult[]
+    web?: WebResult[]
+    youtube?: YouTubeResult[]
+    git?: GitResult[]
+  }
 }
 
 // Visualization Components
@@ -216,79 +240,85 @@ export function ChatBot({ user, chatMode }: ChatBotProps) {
     setInput(e.target.value)
   }
 
-  const parseVisualizations = (data: any) => {
-    const visualizations: any = {}
+  const parseVisualizations = (data: BackendResponse['response']) => {
+    const visualizations: {
+      web?: WebResult[]
+      youtube?: YouTubeResult[]
+      git?: GitResult[]
+    } = {}
     
-    // Parse web results
-    if (data.web_results && Array.isArray(data.web_results)) {
-      visualizations.web = data.web_results.map((result: any) => ({
-        title: result.title || result.snippet?.substring(0, 50) + '...',
-        url: result.url || result.link,
-        snippet: result.snippet || result.description || '',
-        source: result.source || 'Web'
-      }))
-    }
-    
-    // Parse YouTube results
-    if (data.youtube_results && Array.isArray(data.youtube_results)) {
-      visualizations.youtube = data.youtube_results.map((result: any) => ({
-        title: result.title || result.snippet?.substring(0, 50) + '...',
-        url: result.url || result.link,
-        channel: result.channel || result.author || 'Unknown Channel',
-        duration: result.duration || 'Unknown',
-        views: result.views || 'Unknown views',
-        publishedAt: result.publishedAt || result.date || 'Unknown date',
-        thumbnail: result.thumbnail
-      }))
-    }
-    
-    // Parse Git results
-    if (data.git_results && Array.isArray(data.git_results)) {
-      visualizations.git = data.git_results.map((result: any) => ({
-        title: result.title || result.name || result.snippet?.substring(0, 50) + '...',
-        url: result.url || result.link,
-        description: result.description || result.snippet || '',
-        language: result.language || 'Unknown',
-        stars: result.stars || result.stargazers_count || 0,
-        forks: result.forks || result.forks_count || 0,
-        updatedAt: result.updatedAt || result.updated_at || 'Unknown',
-        author: result.author || result.owner || 'Unknown'
-      }))
-    }
-    
-    // Also check for alternative field names
-    if (data.web && Array.isArray(data.web)) {
-      visualizations.web = data.web.map((result: any) => ({
-        title: result.title || result.snippet?.substring(0, 50) + '...',
-        url: result.url || result.link,
-        snippet: result.snippet || result.description || '',
-        source: result.source || 'Web'
-      }))
-    }
-    
-    if (data.youtube && Array.isArray(data.youtube)) {
-      visualizations.youtube = data.youtube.map((result: any) => ({
-        title: result.title || result.snippet?.substring(0, 50) + '...',
-        url: result.url || result.link,
-        channel: result.channel || result.author || 'Unknown Channel',
-        duration: result.duration || 'Unknown',
-        views: result.views || 'Unknown views',
-        publishedAt: result.publishedAt || result.date || 'Unknown date',
-        thumbnail: result.thumbnail
-      }))
-    }
-    
-    if (data.git && Array.isArray(data.git)) {
-      visualizations.git = data.git.map((result: any) => ({
-        title: result.title || result.name || result.snippet?.substring(0, 50) + '...',
-        url: result.url || result.link,
-        description: result.description || result.snippet || '',
-        language: result.language || 'Unknown',
-        stars: result.stars || result.stargazers_count || 0,
-        forks: result.forks || result.forks_count || 0,
-        updatedAt: result.updatedAt || result.updated_at || 'Unknown',
-        author: result.author || result.owner || 'Unknown'
-      }))
+    if (typeof data === 'object' && data !== null) {
+      // Parse web results
+      if (data.web_results && Array.isArray(data.web_results)) {
+        visualizations.web = data.web_results.map((result: WebResult) => ({
+          title: result.title || result.snippet?.substring(0, 50) + '...',
+          url: result.url || result.link || '',
+          snippet: result.snippet || result.description || '',
+          source: result.source || 'Web'
+        }))
+      }
+      
+      // Parse YouTube results
+      if (data.youtube_results && Array.isArray(data.youtube_results)) {
+        visualizations.youtube = data.youtube_results.map((result: YouTubeResult) => ({
+          title: result.title || result.snippet?.substring(0, 50) + '...',
+          url: result.url || result.link || '',
+          channel: result.channel || result.author || 'Unknown Channel',
+          duration: result.duration || 'Unknown',
+          views: result.views || 'Unknown views',
+          publishedAt: result.publishedAt || result.date || 'Unknown date',
+          thumbnail: result.thumbnail
+        }))
+      }
+      
+      // Parse Git results
+      if (data.git_results && Array.isArray(data.git_results)) {
+        visualizations.git = data.git_results.map((result: GitResult) => ({
+          title: result.title || result.name || result.snippet?.substring(0, 50) + '...',
+          url: result.url || result.link || '',
+          description: result.description || result.snippet || '',
+          language: result.language || 'Unknown',
+          stars: result.stars || result.stargazers_count || 0,
+          forks: result.forks || result.forks_count || 0,
+          updatedAt: result.updatedAt || result.updated_at || 'Unknown',
+          author: result.author || result.owner || 'Unknown'
+        }))
+      }
+      
+      // Also check for alternative field names
+      if (data.web && Array.isArray(data.web)) {
+        visualizations.web = data.web.map((result: WebResult) => ({
+          title: result.title || result.snippet?.substring(0, 50) + '...',
+          url: result.url || result.link || '',
+          snippet: result.snippet || result.description || '',
+          source: result.source || 'Web'
+        }))
+      }
+      
+      if (data.youtube && Array.isArray(data.youtube)) {
+        visualizations.youtube = data.youtube.map((result: YouTubeResult) => ({
+          title: result.title || result.snippet?.substring(0, 50) + '...',
+          url: result.url || result.link || '',
+          channel: result.channel || result.author || 'Unknown Channel',
+          duration: result.duration || 'Unknown',
+          views: result.views || 'Unknown views',
+          publishedAt: result.publishedAt || result.date || 'Unknown date',
+          thumbnail: result.thumbnail
+        }))
+      }
+      
+      if (data.git && Array.isArray(data.git)) {
+        visualizations.git = data.git.map((result: GitResult) => ({
+          title: result.title || result.name || result.snippet?.substring(0, 50) + '...',
+          url: result.url || result.link || '',
+          description: result.description || result.snippet || '',
+          language: result.language || 'Unknown',
+          stars: result.stars || result.stargazers_count || 0,
+          forks: result.forks || result.forks_count || 0,
+          updatedAt: result.updatedAt || result.updated_at || 'Unknown',
+          author: result.author || result.owner || 'Unknown'
+        }))
+      }
     }
     
     return Object.keys(visualizations).length > 0 ? visualizations : undefined
@@ -320,7 +350,7 @@ export function ChatBot({ user, chatMode }: ChatBotProps) {
         }),
       })
       if (!res.ok) throw new Error("Failed to fetch response")
-      const data = await res.json()
+      const data: BackendResponse = await res.json()
       
       let answer = ""
       let visualizations = undefined
@@ -362,13 +392,14 @@ export function ChatBot({ user, chatMode }: ChatBotProps) {
         visualizations
       }
       setMessages((prev) => [...prev, botMsg])
-    } catch (err: any) {
+    } catch (error: unknown) {
+      console.error('Chat error:', error)
       setMessages((prev) => [
         ...prev,
         {
           id: `${Date.now()}-error`,
           role: "assistant",
-          content: "Sorry, I couldn't get a response. Please try again.",
+          content: "Sorry, I couldn&apos;t get a response. Please try again.",
         },
       ])
     } finally {
@@ -400,7 +431,7 @@ export function ChatBot({ user, chatMode }: ChatBotProps) {
             {messages.length === 0 && (
               <div className="text-center py-8">
                 <Bot className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-500 mb-2">Hello {user.name}! I'm your learning assistant.</p>
+                <p className="text-slate-500 mb-2">Hello {user.name}! I&apos;m your learning assistant.</p>
                 <p className="text-sm text-slate-400">
                   Currently in {chatMode} mode for {user.role} access level.
                 </p>
@@ -463,9 +494,9 @@ export function ChatBot({ user, chatMode }: ChatBotProps) {
               placeholder="Ask me anything about your learning..."
               className="flex-1 border-slate-200 focus:border-orange-300 focus:ring-orange-200"
               disabled={isLoading}
-              onKeyDown={(e) => {
+              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                 if (e.key === "Enter" && !e.shiftKey) {
-                  handleSubmit(e as any)
+                  handleSubmit(e as React.FormEvent)
                 }
               }}
             />
