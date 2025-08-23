@@ -340,7 +340,7 @@ export function ChatBot({ user, chatMode }: ChatBotProps) {
     setIsLoading(true)
 
     try {
-      const res = await fetch("https://icleaf-p1.onrender.com/chat", {
+      const res = await fetch("https://icleaf-p1-204519078454.europe-west1.run.app/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
