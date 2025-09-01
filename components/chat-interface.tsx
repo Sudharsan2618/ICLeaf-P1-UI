@@ -29,6 +29,10 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
     }
   }
 
+  // Safeguards in case persisted user data is missing fields
+  const safeRole = typeof user?.role === "string" && user.role ? user.role : "learner"
+  const safeName = typeof user?.name === "string" && user.name ? user.name : "User"
+
   return (
     <div className="h-screen bg-gradient-to-br from-slate-50 to-orange-50 flex flex-col">
       {/* Header */}
@@ -45,10 +49,10 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
           </div>
 
           <div className="flex items-center gap-3">
-            <Badge className={getRoleBadgeColor(user.role)}>
-              {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+            <Badge className={getRoleBadgeColor(safeRole)}>
+              {safeRole.charAt(0).toUpperCase() + safeRole.slice(1)}
             </Badge>
-            <span className="text-slate-700 font-medium">{user.name}</span>
+            <span className="text-slate-700 font-medium">{safeName}</span>
             <Button variant="ghost" size="sm" onClick={onLogout} className="text-slate-600 hover:text-slate-800">
               <LogOut className="h-4 w-4" />
             </Button>

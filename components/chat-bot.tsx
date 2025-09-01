@@ -351,6 +351,7 @@ export function ChatBot({ user, chatMode }: ChatBotProps) {
       })
       if (!res.ok) throw new Error("Failed to fetch response")
       const data: BackendResponse = await res.json()
+      console.log('Chat response:', data)
       
       let answer = ""
       let visualizations = undefined
